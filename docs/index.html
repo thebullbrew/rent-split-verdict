@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Rent Split Verdict — Fair By-The-Room Rent, Priced Room by Room</title>
+<meta name="description" content="Split rent fairly: common areas split equally, private rooms weighted by size, bathroom and perks. Ends the equal-split argument with math.">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-32.png">
+<style>
+:root{--bg:#0B0B0D;--surface:#141417;--text:#F4F1E8;--accent:#C8B98A;--accent2:#4A4A52;--line:#2A2A30;--bad:#c96a5a;--good:#9db98a}
+*{box-sizing:border-box}body{margin:0;background:
+ radial-gradient(900px 500px at 15% -5%,rgba(200,185,138,.07),transparent 60%),
+ radial-gradient(700px 600px at 90% 10%,rgba(255,255,255,.035),transparent 55%),
+ radial-gradient(600px 400px at 50% 110%,rgba(200,185,138,.05),transparent 60%),var(--bg);
+ color:var(--text);font-family:Georgia,'Times New Roman',serif;line-height:1.5}
+.wrap{max-width:1060px;margin:0 auto;padding:28px 18px 60px}
+.eyebrow{letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-size:.72rem}
+h1{font-size:clamp(2rem,5vw,3.2rem);margin:.2em 0 .1em;font-weight:600}
+.sub{font-style:italic;color:#cfc9b8;font-size:1.05rem;max-width:720px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),var(--surface);border:1px solid var(--line);padding:22px;margin:18px 0}
+h2{font-size:1.25rem;margin:0 0 12px;font-weight:600}h3{margin:16px 0 6px;font-size:1rem;color:var(--accent)}
+label{display:block;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:#bdb7a4;margin:10px 0 4px}
+input,select{width:100%;background:#0e0e10;border:1px solid var(--line);color:var(--text);padding:10px;font-family:inherit;font-size:1rem}
+input[type=range]{padding:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.room{border:1px solid var(--line);padding:16px;background:rgba(255,255,255,.012)}
+.room h3{margin-top:0;color:var(--text)}
+.checks{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px}
+.checks label{display:inline-flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:.85rem;color:#d8d2c0;margin:0}
+.checks input{width:auto}
+button{background:var(--accent);color:#111;border:0;padding:11px 18px;font-family:inherit;font-size:.95rem;cursor:pointer;letter-spacing:.04em}
+button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button.small{padding:6px 10px;font-size:.82rem}
+.seal{display:inline-block;border:1px solid var(--accent);color:var(--accent);padding:14px 20px;font-size:1.25rem;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+.hero{font-size:clamp(2rem,6vw,3.4rem);color:var(--accent);line-height:1.05}
+table{width:100%;border-collapse:collapse;font-size:.94rem}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:right}th:first-child,td:first-child{text-align:left}
+th{color:#bdb7a4;font-weight:normal;letter-spacing:.05em;text-transform:uppercase;font-size:.75rem}
+.bar{height:10px;background:#222228;display:flex;overflow:hidden;margin:6px 0 2px}
+.bar i{display:block;height:100%}
+.muted{color:#a49e8c;font-size:.88rem}.good{color:var(--good)}.bad{color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+textarea{width:100%;background:#0e0e10;color:var(--text);border:1px solid var(--line);padding:10px;font-family:inherit;min-height:110px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi div{border:1px solid var(--line);padding:14px}.kpi b{display:block;font-size:1.45rem;color:var(--accent);font-weight:600}
+footer{color:#8d8776;font-size:.82rem;margin-top:30px;font-style:italic}
+</style></head><body><div class="wrap">
+<div class="eyebrow">Daily Tool · No. 43 · For Roommates &amp; By-The-Room Landlords</div>
+<h1>The Rent Split Verdict</h1>
+<p class="sub">Equal splits are lazy, not fair. One room has the ensuite and the light. Another hears the street. This prices every room on what it actually is — common space split equally, private space weighted by size, bathroom, and perks — and ends the argument with math instead of volume.</p>
+
+<div class="card"><h2>The Lease</h2>
+<div class="grid">
+<div><label>Total monthly rent ($)</label><input id="rent" type="number" value="2400" min="0" step="10"></div>
+<div><label>Common-area share of rent: <span id="commonLbl">30%</span></label><input id="common" type="range" min="0" max="60" step="5" value="30"><p class="muted">Kitchen, living room, halls — everyone uses them, everyone splits them equally. The rest is priced room by room. 25–35% is typical.</p></div>
+<div><label>Presets</label><div class="row">
+<button class="ghost small" data-preset="student">Student 4-Bed</button>
+<button class="ghost small" data-preset="friends">3 Friends</button>
+<button class="ghost small" data-preset="couple">Couple + Single</button>
+</div></div>
+</div></div>
+
+<div class="card"><h2>The Rooms</h2><div id="rooms"></div>
+<div class="row" style="margin-top:12px"><button class="ghost" id="addRoom">+ Add a room</button><span class="muted">2–6 rooms. Tick the perks and penalties that are actually true — photos and a tape measure beat opinions.</span></div></div>
+
+<div class="card"><h2>The Verdict</h2>
+<div class="row"><span class="seal" id="seal">—</span><div><div class="hero" id="spread">$0</div><div class="muted">spread between the dearest and cheapest room</div></div></div>
+<p id="verdictText" style="font-style:italic"></p>
+<div class="kpi">
+<div><span class="muted">Equal split (the lazy way)</span><b id="kEqual">$0</b></div>
+<div><span class="muted">Biggest equal-split overpayer</span><b id="kOver">—</b></div>
+<div><span class="muted">Their monthly overpay</span><b id="kOverAmt">$0</b></div>
+<div><span class="muted">That is per year</span><b id="kOverYr">$0</b></div>
+</div>
+<h3>What each room should pay</h3>
+<div id="bars"></div>
+<table><thead><tr><th>Room</th><th>Fair rent</th><th>Share</th><th>Vs equal</th><th>$/sq ft</th><th>Weight</th></tr></thead><tbody id="tbody"></tbody></table>
+</div>
+
+<div class="card"><h2>How Much Does the Common Share Matter?</h2>
+<p class="muted">Sweep the common-area share and watch the spread breathe. More common share = flatter split. Less = the rooms carry their true difference.</p>
+<table><thead><tr><th>Common share</th><th>Dearest room</th><th>Cheapest room</th><th>Spread</th></tr></thead><tbody id="sens"></tbody></table>
+</div>
+
+<div class="card"><h2>Save &amp; Share</h2>
+<div class="row"><input id="saveName" placeholder="Name this split — e.g. Maple St house" style="flex:1;min-width:200px"><button id="saveBtn">Save split</button>
+<select id="savedList" style="flex:1;min-width:180px"></select><button class="ghost" id="loadBtn">Load</button><button class="ghost" id="delBtn">Delete</button></div>
+<h3>Copy summary</h3><textarea id="summary" readonly></textarea>
+<div class="row" style="margin-top:8px"><button class="ghost" id="copyBtn">Copy summary</button></div>
+<p class="muted">Method: fair rent = (common pool ÷ rooms) + room pool × (room weight ÷ total weight). Weight = sq ft × bathroom factor (ensuite 1.20 · private half 1.10 · shared 1.00) + perk equivalents in sq ft (parking +15, balcony +12, walk-in closet +8, great light +6, street noise −12, tiny closet −6). Not legal or tax advice — it is an argument settler, not a lease.</p>
+</div>
+<footer>The Rent Split Verdict · A Bull Brew daily tool · Everything runs in your browser; nothing leaves the page.</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+const PERKS=[['parking','Parking spot',15],['balcony','Balcony / patio',12],['closet','Walk-in closet',8],['light','Great light',6],['noise','Street noise',-12],['tiny','Tiny closet',-6]];
+let roomSeq=0;
+function roomEl(r){
+  const d=document.createElement('div');d.className='room';d.dataset.id=++roomSeq;
+  d.innerHTML='<h3 contenteditable="true" class="rname">'+r.name+'</h3>'+
+  '<div class="grid"><div><label>Sq ft (bedroom only)</label><input type="number" class="rsq" value="'+r.sq+'" min="40" step="5"></div>'+
+  '<div><label>Bathroom</label><select class="rbath"><option value="1.2"'+(r.bath==1.2?' selected':'')+'>Ensuite full (×1.20)</option><option value="1.1"'+(r.bath==1.1?' selected':'')+'>Private half (×1.10)</option><option value="1"'+(r.bath==1?' selected':'')+'>Shared (×1.00)</option></select></div></div>'+
+  '<div class="checks">'+PERKS.map(p=>'<label><input type="checkbox" class="rperk" value="'+p[2]+'" data-k="'+p[0]+'"'+(r.perks.includes(p[0])?' checked':'')+'> '+p[1]+' ('+(p[2]>0?'+':'')+p[2]+')</label>').join('')+'</div>'+
+  '<div class="row" style="margin-top:8px"><button class="ghost small rdel">Remove room</button><span class="muted rweight"></span></div>';
+  d.querySelector('.rdel').onclick=()=>{if(document.querySelectorAll('.room').length>2){d.remove();calc();}};
+  d.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',calc));
+  d.querySelector('.rname').addEventListener('input',calc);
+  return d;
+}
+function readRooms(){
+  return [...document.querySelectorAll('.room')].map(d=>{
+    let extra=0;d.querySelectorAll('.rperk:checked').forEach(c=>extra+=+c.value);
+    const sq=+d.querySelector('.rsq').value||0, bath=+d.querySelector('.rbath').value||1;
+    return {name:d.querySelector('.rname').textContent.trim()||'Room',sq,bath,extra,weight:Math.max(10,sq*bath+extra)};
+  });
+}
+function split(rent,commonPct,rooms){
+  const commonPool=rent*commonPct/100, roomPool=rent-commonPool, tw=rooms.reduce((s,r)=>s+r.weight,0)||1;
+  return rooms.map(r=>({...r,fair:commonPool/rooms.length+roomPool*r.weight/tw}));
+}
+function calc(){
+  const rent=+$('rent').value||0, cp=+$('common').value||0;
+  $('commonLbl').textContent=cp+'%';
+  const rooms=readRooms(), res=split(rent,cp,rooms), equal=rooms.length?rent/rooms.length:0;
+  const sorted=[...res].sort((a,b)=>b.fair-a.fair), top=sorted[0], bot=sorted[sorted.length-1];
+  const spread=top&&bot?top.fair-bot.fair:0, ratio=bot&&bot.fair>0?top.fair/bot.fair:1;
+  let seal,txt;
+  if(ratio<=1.18){seal='Balanced House';txt='These rooms are close to equals. A flat split would not rob anyone — but post this anyway, so nobody relitigates it in month four.';}
+  else if(ratio<=1.45){seal='Fair Premium';txt='The top room is genuinely worth more, and now it pays like it. The gap is real but modest — exactly the size of argument an equal split would have caused every single month.';}
+  else if(ratio<=1.75){seal='Top Room Carries';txt='One room is carrying this house — bigger, better bath, better perks. Charging it the same as the smallest room is not fairness, it is a subsidy. Price the difference or rotate who gets the good room.';}
+  else{seal='Two Houses, One Lease';txt='The spread is so wide these are effectively two different homes sharing a kitchen. An equal split here would breed resentment by the second rent day. Split it by the math, in writing, before anyone signs.';}
+  $('seal').textContent=seal; $('spread').textContent=money(spread); $('verdictText').textContent=txt;
+  $('kEqual').textContent=money(equal);
+  let over=null; res.forEach(r=>{const o=equal-r.fair; if(!over||o>over.amt) over={name:r.name,amt:o};});
+  if(over&&over.amt>1){$('kOver').textContent=over.name;$('kOverAmt').textContent=money(over.amt);$('kOverYr').textContent=money(over.amt*12);}
+  else{$('kOver').textContent='Nobody';$('kOverAmt').textContent='$0';$('kOverYr').textContent='$0';}
+  const colors=['#C8B98A','#8a9a7a','#7a8a9d','#b08a6a','#9d7ab0','#c2c2c2'];
+  $('bars').innerHTML=res.map((r,i)=>'<div><span class="muted">'+r.name+' — '+money(r.fair)+'/mo</span><div class="bar"><i style="width:'+(rent?r.fair/rent*100:0)+'%;background:'+colors[i%colors.length]+'"></i></div></div>').join('');
+  $('tbody').innerHTML=res.map(r=>{const d=equal-r.fair;return '<tr><td>'+r.name+'</td><td>'+money(r.fair)+'</td><td>'+(rent?(r.fair/rent*100).toFixed(1):0)+'%</td><td class="'+(d>1?'bad':d<-1?'good':'')+'">'+(Math.abs(d)<1?'—':(d>0?'overpays '+money(d):'saves '+money(-d)))+'</td><td>$'+(r.sq?(r.fair/r.sq).toFixed(2):'0')+'</td><td>'+Math.round(r.weight)+'</td></tr>';}).join('');
+  document.querySelectorAll('.room').forEach((d,i)=>{const w=d.querySelector('.rweight'); if(w) w.textContent='Weight: '+Math.round(res[i].weight)+' (sq ft × bath + perks)';});
+  $('sens').innerHTML=[0,15,30,45,60].map(c=>{const s=split(rent,c,rooms);const f=s.map(x=>x.fair);return '<tr'+(c===cp?' style="color:var(--accent)"':'')+'><td>'+c+'%</td><td>'+money(Math.max(...f))+'</td><td>'+money(Math.min(...f))+'</td><td>'+money(Math.max(...f)-Math.min(...f))+'</td></tr>';}).join('');
+  $('summary').value='THE RENT SPLIT VERDICT\nTotal rent '+money(rent)+'/mo · Common-area share '+cp+'% · Verdict: '+seal.toUpperCase()+' (spread '+money(spread)+')\n'+res.map(r=>'• '+r.name+': '+money(r.fair)+'/mo ('+(rent?(r.fair/rent*100).toFixed(1):0)+'% of rent, vs equal '+money(equal)+')').join('\n')+'\nEqual split would make '+(over?over.name:'nobody')+' overpay '+(over?money(over.amt):'$0')+'/mo. Common space split equally; private rooms weighted by size, bathroom and perks.';
+}
+const PRESETS={
+ student:{rent:3350,common:25,rooms:[{name:'Room 1 — Ensuite',sq:170,bath:1.2,perks:['parking','closet']},{name:'Room 2',sq:135,bath:1,perks:['light']},{name:'Room 3',sq:120,bath:1,perks:[]},{name:'Room 4 — Street side',sq:110,bath:1,perks:['noise']}]},
+ friends:{rent:2400,common:30,rooms:[{name:'Primary — Ensuite',sq:180,bath:1.2,perks:['parking','closet']},{name:'Middle Room',sq:130,bath:1,perks:[]},{name:'Small Room — Street',sq:110,bath:1,perks:['noise']}]},
+ couple:{rent:2100,common:35,rooms:[{name:'Primary — Ensuite (couple)',sq:190,bath:1.2,perks:['balcony','closet']},{name:'Second Room (single)',sq:125,bath:1,perks:['light']}]}
+};
+function loadPreset(p){$('rent').value=p.rent;$('common').value=p.common;$('rooms').innerHTML='';p.rooms.forEach(r=>$('rooms').appendChild(roomEl(r)));calc();}
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>loadPreset(PRESETS[b.dataset.preset]));
+$('addRoom').onclick=()=>{if(document.querySelectorAll('.room').length<6)$('rooms').appendChild(roomEl({name:'Room '+(document.querySelectorAll('.room').length+1),sq:120,bath:1,perks:[]}));calc();};
+['rent','common'].forEach(id=>$(id).addEventListener('input',calc));
+function saves(){try{return JSON.parse(localStorage.getItem('rent-split-verdict')||'[]')}catch(e){return[]}}
+function refreshSaved(){$('savedList').innerHTML=saves().map((s,i)=>'<option value="'+i+'">'+s.name+'</option>').join('')||'<option value="">No saved splits</option>';}
+$('saveBtn').onclick=()=>{const a=saves();a.push({name:$('saveName').value||'Untitled split',rent:$('rent').value,common:$('common').value,rooms:readRooms().map(r=>({name:r.name,sq:r.sq,bath:r.bath,perks:[...document.querySelectorAll('.room')][readRooms().indexOf(r)]?[]:[]}))});
+ // store perks faithfully
+ const roomsData=[...document.querySelectorAll('.room')].map(d=>({name:d.querySelector('.rname').textContent.trim(),sq:+d.querySelector('.rsq').value,bath:+d.querySelector('.rbath').value,perks:[...d.querySelectorAll('.rperk:checked')].map(c=>c.dataset.k)}));
+ a[a.length-1].rooms=roomsData; localStorage.setItem('rent-split-verdict',JSON.stringify(a)); refreshSaved();};
+$('loadBtn').onclick=()=>{const s=saves()[+$('savedList').value]; if(s) loadPreset(s);};
+$('delBtn').onclick=()=>{const a=saves(); a.splice(+$('savedList').value,1); localStorage.setItem('rent-split-verdict',JSON.stringify(a)); refreshSaved();};
+$('copyBtn').onclick=()=>{$('summary').select();document.execCommand('copy');};
+loadPreset(PRESETS.friends); refreshSaved();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script></body></html>
